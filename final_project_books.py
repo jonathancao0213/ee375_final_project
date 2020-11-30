@@ -5,6 +5,7 @@ import csv
 import sys
 import numpy as np
 
+
 def make_url(sequence):
     return "https://www.goodreads.com/book/show/%s" % sequence
 
@@ -56,17 +57,22 @@ def get_genre(page):
         c = c.split('>')
         c = c[0].lstrip().rstrip()
         genres.append(c)
+    genres = list(dict.fromkeys(genres))
 
     if '' in genres:
         genres.remove('')
 
-    return list(dict.fromkeys(genres))
+    return genres
 
 
 def get_pages(page):
-    p = page.find('span', itemprop='numberOfPages').text
-    p = p.split(' ')
-    return int(p[0])
+    p = page.find('span', itemprop='numberOfPages')
+    try:
+        p = p.text
+        p = p.split(' ')
+        return int(p[0])
+    except:
+        return 0
 
 
 def enter_database(data):
@@ -85,8 +91,9 @@ def run(more):
         this function will add books 1001-1200 to the database.
     """
     with open('books.csv', mode='r', newline='', errors='ignore') as file:
-        num = list(file)
-        num = int(num[-1][0])
+        reader = csv.reader(file)
+        num = list(reader)[-1][0]
+        num = int(num)
 
     start = num + 1
     end = start + more
@@ -99,12 +106,10 @@ def run(more):
 
     enter_database(data)
 
-# print(get_book(10242))
-# t = ["Index", "Title", "Pages", "Rating", "Genres", "Description"]
 
-if __name__ == "__main__":
-    r = sys.argv[1]
-    print('Adding %s books to the database' % r)
+if __name__ == "__main__":  # do [>python final_project_books.py num] where num is the number of books you wanna add
+    r = int(sys.argv[1])
+    print('Adding %d books to the database' % r)
     start_time = time.time()
     run(r)
     print('Finished adding books to the database')
